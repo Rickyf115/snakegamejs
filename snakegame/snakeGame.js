@@ -45,17 +45,20 @@ function setup(){
 function draw(){
   background(60);
 
+  //Update head position every five frames.
   head.show();
-
   if(frameCount % 5 == 0){
     head.update();
   }
+
   food.show();
 
-  if(head.x == food.x && head.y == food.y){
+  //Push new tail if food and snake are in the same cell
+  if(head.currentCell == food.currentCell){
     food.eat();
   }
 
+  //Update tail position every 5 frames
   for(var i = 0; i < tail.length; i++){
     tail[i].show();
 
@@ -63,10 +66,12 @@ function draw(){
       tail[i].update();
     }
 
-    if(tail[i].x == head.x && tail[i].y == head.y){
+    //Restart game if player loses by running into him/herself.
+    if(tail[i].currentCell == head.currentCell){
       setup();
     }
   }
+
   drawScore();
 }
 
@@ -85,16 +90,16 @@ function Cell(x, y){
 
 //ENTITY FUNCTIONS
 function Head(x, y){
+  //Initialize head
   this.currentCell = findCell(x, y);
   this.previousCell = null;
-
   this.x = x;
   this.y = y;
 
+  //Choose random direction for snake to move in on initial launch.
   var randomDir = getRandomInt(0,3);
   this.movementX = 0;
   this.movementY = 0;
-
   if(randomDir == direction.UP){
     this.movementY = -1;
   }else if(randomDir == direction.DOWN){
@@ -105,17 +110,27 @@ function Head(x, y){
     this.movementX = 1;
   }
 
+  //Show Head as part of the grid
   this.show = function(){
     stroke(0);
     fill(0,255,0);
     rect(this.currentCell.scaledX, this.currentCell.scaledY, cellSize, cellSize);
   }
 
+  /*
+    Update head position based on velocity towards given direction.
+    X = -1 : LEFT
+    X = 1 : RIGHT
+    Y = -1 : UP
+    Y = 1 : DOWN
+  */
   this.update = function(){
+    //Keep track of previousCell for the tail to update here
     this.previousCell = this.currentCell;
     this.x += this.movementX;
     this.y += this.movementY;
 
+    //Loop around the canvas if head goes out of bounds
     if(this.x >= rows){
       this.x = 0;
     }else if(this.x < 0){
@@ -126,6 +141,7 @@ function Head(x, y){
       this.y = cols - 1;
     }
 
+    //Update current cell
     this.currentCell = findCell(this.x, this.y);
   }
 }
@@ -148,13 +164,13 @@ function Food(x,y){
     this.x = getRandomInt(0, rows - 1);
     this.y = getRandomInt(0, cols - 1);
 
-    //HEAD CHECK
+    //HEAD CHECK (DONT SPAWN FOOD IN SAME CELL AS HEAD)
     while(this.x == head.x && this.y == head.y){
       this.x = getRandomInt(0, rows - 1);
       this.y = getRandomInt(0, cols - 1);
     }
 
-    //TAIL CHECK
+    //TAIL CHECK (DONT SPAWN FOOD IN SAME CELL AS TAIL)
     for(var i = 0; i < tail.length; i++){
       while(this.x == tail[i].x && this.y == tail[i].y){
         this.x = getRandomInt(0, rows - 1);
@@ -175,6 +191,7 @@ function Food(x,y){
 }
 
 function Tail(x, y, cellToFollowIndex){
+  //Setup function
   this.currentCell = findCell(x,y);
   this.x = x;
   this.y = y;
@@ -194,7 +211,7 @@ function Tail(x, y, cellToFollowIndex){
       this.currentCell = head.previousCell;
       this.x = this.currentCell.x;
       this.y = this.currentCell.y;
-    }else{
+    }else{ //Follows what was the previously the last index in the tail array.
       this.currentCell = tail[cellToFollowIndex].previousCell;
       this.x = this.currentCell.x;
       this.y = this.currentCell.y;
@@ -210,6 +227,7 @@ function drawScore(){
   text(score, width/2, 32)
 }
 
+//Gets cell, minimizes work for setting up cells for objects.
 function findCell(x, y){
   for(var i = 0; i < grid.length; i++){
     if(grid[i].x == x && grid[i].y == y){
@@ -218,22 +236,28 @@ function findCell(x, y){
   }
 }
 
+//RNG
 function getRandomInt(min, max){
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+//CHECK KEYS PRESSED
 function keyPressed(){
+  //UP
   if(keyCode == UP_ARROW){
     head.movementX = 0;
     head.movementY = -1;
+  //DOWN
   }else if(keyCode == DOWN_ARROW){
     head.movementX = 0;
     head.movementY = 1;
+  //LEFT
   }else if(keyCode == LEFT_ARROW){
     head.movementX = -1;
     head.movementY = 0;
+  //RIGHT
   }else if(keyCode == RIGHT_ARROW){
     head.movementX = 1;
     head.movementY = 0;
