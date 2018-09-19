@@ -1,4 +1,5 @@
 var grid = [];
+var hello = "Hello World!"
 var rows, cols;
 var cellSize;
 var score;
@@ -34,7 +35,6 @@ function setup(){
 
   //Initilaize food
   food = new Food(getRandomInt(0, rows - 1), getRandomInt(0, cols - 1));
-
 
   //Not efficient but chances are this wont be an issue for the first boot.
   while(food.x == head.x && food.y == head.y){
